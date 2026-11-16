@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartPark - Hệ Thống Xếp Lịch Xe Máy Sinh Viên</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+  <!-- ============================================================== -->
+  <!-- 1. MÀN HÌNH ĐĂNG NHẬP (LOGIN VIEW) -->
+  <!-- ============================================================== -->
+  <div id="view-login" class="login-wrapper">
+    <div class="login-box">
+      <div class="login-header">
+        <div class="login-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <rect x="3" y="3" width="18" height="18" rx="4" />
+            <path d="M9 17V7h4a3 3 0 0 1 0 6H9" />
+          </svg>
+        </div>
+        <h2>SmartPark UET</h2>
+        <p class="login-sub">Cổng Đăng Nhập Hệ Thống Xếp Lịch & Quản Lý Xe Máy</p>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" class="login-form" onsubmit="handleLoginSubmit(event)">
+        <div class="form-group">
+          <label for="loginUsername">Tài khoản (Tên đăng nhập hoặc Mã SV):</label>
+          <input type="text" id="loginUsername" class="input-control"
+            placeholder="Nhập tài khoản hoặc Mã SV (VD: 24020000)" required autofocus>
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword">Mật khẩu:</label>
+          <input type="password" id="loginPassword" class="input-control" placeholder="Nhập mật khẩu" required>
+        </div>
+
+        <div id="loginErrorMsg" class="login-error-alert" style="display: none;"></div>
+
+        <button type="submit" class="btn btn-primary btn-block">
+          🔐 Đăng Nhập
+        </button>
+      </form>
+
+      <!-- Student Security Notice (Bảo mật tài khoản & Không lộ thông tin Quản trị) -->
+      <div class="login-security-notice">
+        ℹ️ <strong>Lưu ý:</strong> Sinh viên đăng nhập bằng Mã sinh viên (Khóa QH-2024: <code>24020000</code> –
+        <code>24024000</code>). Mật khẩu mặc định là <code>12345678</code> và bắt buộc đổi mật khẩu ở lần đăng nhập đầu
+        tiên để bảo vệ tài khoản.
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- 2. MÀN HÌNH QUẢN TRỊ VIÊN (ADMIN DASHBOARD) -->
+  <!-- ============================================================== -->
+  <div id="view-admin" class="view-panel" style="display: none;">
+    <!-- Top Nav for Admin -->
+    <header class="top-nav">
+      <div class="nav-container">
+        <div class="brand">
+          <div class="brand-icon">🅿️</div>
+          <div class="brand-info">
+            <h2>SmartPark UET • Quản Trị Bãi Xe</h2>
+            <span class="brand-tag">Bảng Điều Hành Toàn Trường</span>
+          </div>
+        </div>
+
+        <div class="nav-status">
+          <div class="status-chip chip-db" title="Lưu trữ dữ liệu bền vững bằng SQLite Database">
+            <span>💾 CSDL: SQLite3</span>
+          </div>
+          <div class="status-chip">
+            <span class="chip-label">Sức chứa:</span>
+            <span class="chip-value" id="adminNavCapacity">50 xe / ca</span>
+          </div>
+          <div class="status-chip chip-success">
+            <span class="pulse-dot"></span>
+            <span>100% Đủ chỗ (0 quá tải)</span>
+          </div>
+          <div class="user-pill admin">
+            <span>🛡️ Ban Quản Trị</span>
+            <button class="btn-logout" onclick="handleLogout()">Đăng xuất</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="dashboard-container">
+      <!-- KPI Row -->
+      <section class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-icon blue">👥</div>
+          <div class="kpi-content">
+            <span class="kpi-title">Tổng sinh viên đăng ký</span>
+            <div class="kpi-number" id="kpiTotalStudents">350</div>
+            <span class="kpi-hint">Dải mã 24020000 - 24024000</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon green">🎯</div>
+          <div class="kpi-content">
+            <span class="kpi-title">Sinh viên đã duyệt vào lịch</span>
+            <div class="kpi-number text-green" id="kpiServedStudents">318</div>
+            <span class="kpi-hint text-green" id="kpiServedRate">Đạt 100% sinh viên được duyệt</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon amber">⏳</div>
+          <div class="kpi-content">
+            <span class="kpi-title">Đơn đăng ký chờ duyệt</span>
+            <div class="kpi-number text-amber" id="kpiPendingStudents">36</div>
+            <span class="kpi-hint text-amber" id="kpiPendingHint">Cần Admin phê duyệt</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon purple">🅿️</div>
+          <div class="kpi-content">
+            <span class="kpi-title">Tổng chỗ phục vụ / tuần</span>
+            <div class="kpi-number" id="kpiTotalSlots">1,200</div>
+            <span class="kpi-hint">24 ca (Thứ 2 - Thứ 7, 4 ca/ngày)</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon teal">⚖️</div>
+          <div class="kpi-content">
+            <span class="kpi-title">Độ công bằng phân bổ</span>
+            <div class="kpi-number" id="kpiFairnessIndex">90.6%</div>
+            <span class="kpi-hint">Chỉ số Jain's Index</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Bảng điều phối 24 ca bãi xe -->
+      <section class="dash-section">
+        <div class="section-title-bar">
+          <div class="title-left">
+            <span class="section-badge">Bảng Điều Phối</span>
+            <h3>Tình Trạng Lấp Đầy 24 Ca Học Trong Tuần (Ca 1 - Ca 4)</h3>
+          </div>
+          <span class="live-tag">Trực quan 24 ca (Ca 1: 7h-9h35, Ca 2: 10h-12h35, Ca 3: 13h20-15h55, Ca 4:
+            16h20-18h55)</span>
+        </div>
+
+        <div class="sessions-heatmap" id="sessionsHeatmap">
+          <!-- Rendered by JS -->
+        </div>
+
+        <!-- Detail Modal for Session -->
+        <div id="sessionDetailModal" class="session-modal-box" style="display: none;">
+          <div class="modal-header">
+            <div>
+              <h4 id="sessionDetailTitle">Danh sách Sinh viên được duyệt</h4>
+              <span class="text-sub" id="sessionDetailSubtitle">Sức chứa tối đa 50 xe</span>
+            </div>
+            <button class="btn-close" onclick="closeSessionDetail()">✕ Đóng</button>
+          </div>
+          <div class="table-container">
+            <table class="simple-table">
+              <thead>
+                <tr>
+                  <th>Mã SV</th>
+                  <th>Họ và Tên</th>
+                  <th>Ngành học</th>
+                  <th>Biển số xe</th>
+                  <th>Nơi ở / Trọ</th>
+                  <th>Khoảng cách</th>
+                  <th>Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody id="sessionStudentsList">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Phê Duyệt Yêu Cầu Đăng Ký Gửi Xe Của Sinh Viên -->
+      <section class="dash-section" id="sectionPendingApprovals">
+        <div class="section-title-bar">
+          <div class="title-left">
+            <span class="section-badge yellow">Xét Duyệt</span>
+            <h3>Yêu Cầu Đăng Ký Xếp Chỗ Chờ Ban Quản Trị Phê Duyệt</h3>
+          </div>
+          <div class="table-actions-bar">
+            <span class="badge yellow" id="pendingTotalBadge">Chờ duyệt: 0 sinh viên</span>
+            <button class="btn btn-primary btn-sm" id="btnApproveAll" onclick="handleApproveAllStudents()">
+              ⚡ Phê Duyệt Tất Cả Đơn Chờ Duyệt
+            </button>
+          </div>
+        </div>
+
+        <div class="table-container full-list-container" style="max-height: 380px;">
+          <table class="simple-table" id="pendingStudentsTable">
+            <thead>
+              <tr>
+                <th style="width: 50px;">STT</th>
+                <th>Mã Sinh Viên</th>
+                <th>Họ và Tên</th>
+                <th>Ngành học</th>
+                <th>Biển số xe</th>
+                <th>Nơi ở / Trọ</th>
+                <th>Khoảng cách</th>
+                <th>Số buổi xin</th>
+                <th>Các ca mong muốn</th>
+                <th>Trạng thái</th>
+                <th style="text-align: center; width: 170px;">Hành động duyệt</th>
+              </tr>
+            </thead>
+            <tbody id="pendingStudentsList">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section: Danh Sách Đầy Đủ Sinh Viên Được Duyệt Gửi Xe Toàn Trường -->
+      <section class="dash-section">
+        <div class="section-title-bar">
+          <div class="title-left">
+            <span class="section-badge">Toàn Trường</span>
+            <h3>Danh Sách Đầy Đủ Sinh Viên Được Duyệt Gửi Xe (Khóa 2402)</h3>
+          </div>
+          <div class="table-actions-bar">
+            <div class="search-input-wrap">
+              <input type="text" id="adminStudentSearch" class="input-search"
+                placeholder="🔍 Tìm kiếm theo Mã SV (2402xxxx) hoặc Họ tên..." oninput="filterApprovedStudents()">
+            </div>
+            <span class="badge green" id="approvedTotalBadge">Đã duyệt: 350 / 350 sinh viên</span>
+          </div>
+        </div>
+
+        <div class="table-container full-list-container">
+          <table class="simple-table" id="allApprovedTable">
+            <thead>
+              <tr>
+                <th style="width: 50px;">STT</th>
+                <th>Mã Sinh Viên</th>
+                <th>Họ và Tên</th>
+                <th>Ngành học</th>
+                <th>Biển số xe</th>
+                <th>Nơi ở / Trọ</th>
+                <th>Khoảng cách</th>
+                <th>Số buổi được cấp</th>
+                <th>Các ca được xếp đi xe máy</th>
+                <th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody id="allApprovedStudentsList">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section: Bộ điều khiển Xếp lịch tự động -->
+      <section class="dash-section">
+        <div class="section-title-bar">
+          <div class="title-left">
+            <span class="section-badge">Thuật Toán</span>
+            <h3>Bộ Điều Hành & Xếp Lịch Tự Động Toàn Trường</h3>
+          </div>
+        </div>
+
+        <div class="controls-grid">
+          <div class="control-card">
+            <h4>Thiết lập thông số sức chứa & Quy tắc</h4>
+            <div class="form-row">
+              <div class="form-field">
+                <label>Sức chứa bãi xe mỗi ca:</label>
+                <div class="input-with-unit">
+                  <input type="number" id="inputCapacity" value="50" min="30" max="200" step="5">
+                  <span>xe/ca</span>
+                </div>
+              </div>
+
+              <div class="form-field">
+                <label>Số buổi đi xe tối đa:</label>
+                <select id="selectMaxDays" class="select-input">
+                  <option value="1">1 buổi / tuần</option>
+                  <option value="2" selected>2 buổi / tuần (Khuyên dùng)</option>
+                  <option value="3">3 buổi / tuần</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row mt-3">
+              <div class="form-field">
+                <label>Trọng số ưu tiên khoảng cách xa:</label>
+                <input type="range" id="rangeWeightDist" min="20" max="80" value="50" oninput="updateWeightLabels()">
+                <div class="range-hint">Trọng số khoảng cách: <strong id="lblWeightDist">50%</strong></div>
+              </div>
+
+              <div class="form-field">
+                <label>Ưu tiên đối tượng chính sách & nguyện vọng:</label>
+                <div class="range-hint" style="padding-top: 8px;">
+                  Chính sách: <strong>25%</strong> | Nguyện vọng ca học: <strong>25%</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="action-buttons-row mt-4">
+              <button class="btn btn-primary" onclick="triggerOptimization('ilp')">
+                ⚡ Chạy Xếp Lịch Tự Động (Tối Ưu & Công Bằng)
+              </button>
+              <button class="btn btn-secondary" onclick="triggerOptimization('benchmark')">
+                📊 Đối Sánh Hiệu Quả Giải Thuật
+              </button>
+              <button class="btn btn-outline" onclick="regenerateData()">
+                🔄 Tạo Lại Danh Sách 350 SV
+              </button>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <h4>Giám sát hiệu quả phân bổ</h4>
+            <div class="stats-mini-grid">
+              <div class="mini-stat-box green">
+                <span class="stat-lbl">Tỷ lệ phục vụ</span>
+                <strong class="stat-val" id="ctrlServicedRate">100%</strong>
+                <small>350 / 350 sinh viên</small>
+              </div>
+
+              <div class="mini-stat-box blue">
+                <span class="stat-lbl">Hiệu suất bãi xe</span>
+                <strong class="stat-val" id="ctrlUtilRate">98.5%</strong>
+                <small>Lấp đầy tối ưu</small>
+              </div>
+
+              <div class="mini-stat-box green">
+                <span class="stat-lbl">Sự cố quá tải</span>
+                <strong class="stat-val" id="ctrlViolations">0 ca</strong>
+                <small>Bảo đảm 100% đủ chỗ</small>
+              </div>
+
+              <div class="mini-stat-box amber">
+                <span class="stat-lbl">Thời gian tính toán</span>
+                <strong class="stat-val" id="ctrlExecTime">4 ms</strong>
+                <small>Xử lý tức thì</small>
+              </div>
+            </div>
+
+            <!-- Benchmark Results -->
+            <div id="benchmarkBox" class="mt-3" style="display: none;">
+              <strong class="text-sub">So sánh với các phương án xếp lịch khác:</strong>
+              <table class="mini-table mt-2">
+                <thead>
+                  <tr>
+                    <th>Phương pháp</th>
+                    <th>Phục vụ</th>
+                    <th>Công bằng</th>
+                    <th>Quá tải</th>
+                  </tr>
+                </thead>
+                <tbody id="benchmarkTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Giám sát cổng quét thẻ QR -->
+      <section class="dash-section">
+        <div class="section-title-bar">
+          <div class="title-left">
+            <span class="section-badge">Cổng Kiểm Soát</span>
+            <h3>Giám Sát Lưu Thông Cổng Barrier Quét Mã QR</h3>
+          </div>
+          <div class="gate-status-pill">
+            <span class="pulse-dot green"></span>
+            <span>2 làn quét tự động đang hoạt động</span>
+          </div>
+        </div>
+
+        <div class="gate-grid">
+          <div class="gate-visual-box">
+            <div class="gate-visual-header">
+              <span>Mô phỏng dòng xe giờ cao điểm (Real-time Simulation)</span>
+              <span class="badge-time">Tốc độ quét: ~7.5 giây / xe</span>
+            </div>
+            <div class="canvas-wrapper">
+              <canvas id="queueCanvas" width="860" height="140"></canvas>
+            </div>
+          </div>
+
+          <div class="gate-metrics-box">
+            <h4>Chỉ số lưu thông tại cổng</h4>
+            <div class="gate-metric-item">
+              <span class="gm-lbl">Thời gian chờ trung bình:</span>
+              <strong class="gm-val text-green" id="gateWaitTime">~ 2.4 giây</strong>
+            </div>
+            <div class="gate-metric-item">
+              <span class="gm-lbl">Số xe xếp hàng:</span>
+              <strong class="gm-val" id="gateQueueLen">0.16 xe (Thông thoáng)</strong>
+            </div>
+            <div class="gate-metric-item">
+              <span class="gm-lbl">Áp lực giờ cao điểm:</span>
+              <strong class="gm-val text-green">Đã điều tiết đều qua lịch hẹn</strong>
+            </div>
+            <p class="gate-note">
+              Nhờ bãi xe đã xếp lịch cố định trước, sinh viên chỉ việc quét mã QR trên điện thoại trong 3-5 giây là
+              barrier mở tự động, giải quyết dứt điểm ùn tắc cổng trường.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- 3. MÀN HÌNH SINH VIÊN (STUDENT PORTAL & REGISTRATION) -->
+  <!-- ============================================================== -->
+  <div id="view-student" class="view-panel" style="display: none;">
+    <!-- Top Nav for Student -->
+    <header class="top-nav">
+      <div class="nav-container">
+        <div class="brand">
+          <div class="brand-icon">🎓</div>
+          <div class="brand-info">
+            <h2>SmartPark UET • Cổng Sinh Viên</h2>
+            <span class="brand-tag">Đăng Ký & Quản Lý Lịch Gửi Xe Máy Cá Nhân</span>
+          </div>
+        </div>
+
+        <div class="nav-status">
+          <div class="status-chip chip-success">
+            <span class="pulse-dot"></span>
+            <span>Hệ thống bãi xe mở</span>
+          </div>
+          <div class="user-pill student">
+            <span id="navStudentDisplay">🎓 Sinh viên: 24020000</span>
+            <button class="btn-change-pwd" onclick="openChangePasswordModal(false)">🔑 Đổi mật khẩu</button>
+            <button class="btn-logout" onclick="handleLogout()">Đăng xuất</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="dashboard-container">
+
+      <!-- Banner Trạng Thái Đăng Ký Của Sinh Viên -->
+      <div id="studentStatusBanner" class="notice-banner banner-warning" style="display: none; margin-bottom: 20px;">
+        <div class="notice-icon" id="studentBannerIcon">⏳</div>
+        <div class="notice-text">
+          <strong id="studentBannerTitle">Hồ sơ đang chờ Ban Quản trị phê duyệt</strong>
+          <span id="studentBannerDesc">Yêu cầu đăng ký gửi xe của bạn đã được ghi nhận. Sau khi Quản trị viên xét duyệt,
+            lịch gửi xe và thẻ số QR chính thức sẽ được kích hoạt tại đây.</span>
+        </div>
+      </div>
+
+      <!-- Top Row: Digital Parking Pass & Weekly Schedule -->
+      <div class="student-grid-layout">
+
+        <!-- Left: Thẻ gửi xe điện tử (Digital Pass) -->
+        <div class="digital-pass-card">
+          <div class="pass-top">
+            <div class="pass-brand">
+              <span class="pass-logo">🅿️</span>
+              <div>
+                <strong>THẺ GỬI XE MÁY ĐIỆN TỬ</strong>
+                <small>Học kỳ 1 • UET ĐHQGHN</small>
+              </div>
+            </div>
+            <span class="pass-status-badge" id="passStatusBadge">HỢP LỆ</span>
+          </div>
+
+          <div class="pass-middle">
+            <div class="qr-box" id="qrContainer">
+              <!-- Live SVG QR Code -->
+            </div>
+            <div class="pass-details">
+              <h4 id="passName">SINH VIÊN</h4>
+              <div class="pass-meta">
+                <span>Mã SV: <strong id="passId">24020000</strong></span>
+                <span>Biển số xe: <strong class="plate-text" id="passPlate">29-B1-48291</strong></span>
+                <span>Ngành: <span id="passMajor">Công nghệ Thông tin</span></span>
+                <span>Khu vực: <span id="passDistrict">Hà Đông (12.5 km)</span></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pass-bottom">
+            <div class="quota-stat">
+              <span class="quota-label">Lịch gửi xe được duyệt:</span>
+              <strong class="quota-val text-green" id="passQuotaText">2 buổi / tuần</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Weekly Schedule with Slot Yielding -->
+        <div class="student-schedule-panel">
+          <div class="panel-header">
+            <h4>Lịch Đi Học & Lịch Được Gửi Xe Máy Trong Tuần</h4>
+            <span class="tag-info" id="studentSummaryTag">Đã xếp 2 buổi đi xe máy</span>
+          </div>
+
+          <p class="panel-desc">
+            Các ô có viền <strong>xanh lá</strong> là các ca bạn <strong>được phép đi xe máy</strong> đến trường. Nếu
+            bận hoặc đi xe bus, hãy nhấn <strong>"🌟 Báo nghỉ / Nhượng chỗ"</strong> để giải phóng chỗ cho bạn khác có
+            nhu cầu!
+          </p>
+
+          <div class="student-sessions-grid" id="studentScheduleGrid">
+            <!-- Rendered by JS -->
+          </div>
+
+          <!-- Alert for Co-creation Action -->
+          <div id="coCreationAlert" class="notice-banner" style="display: none;">
+            <div class="notice-icon">🎉</div>
+            <div class="notice-text" id="coCreationMessage">
+              Nhượng chỗ thành công!
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Row: Form Đăng Ký Xếp Xe Máy Mới -->
+      <section class="dash-section mt-4">
+        <div class="section-title-bar">
+          <div class="title-left">
+            <span class="section-badge">Đăng Ký Xếp Chỗ</span>
+            <h3>Đăng Ký & Cập Nhật Nhu Cầu Gửi Xe Máy Hàng Tuần</h3>
+          </div>
+        </div>
+
+        <form id="studentRegistrationForm" class="registration-form" onsubmit="handleStudentRegisterSubmit(event)">
+          <div class="reg-form-grid">
+            <div class="form-field">
+              <label for="regDesiredDays">Số buổi/tuần mong muốn đi xe máy:</label>
+              <select id="regDesiredDays" class="select-input">
+                <option value="1">1 buổi / tuần</option>
+                <option value="2" selected>2 buổi / tuần (Tiêu chuẩn công bằng)</option>
+              </select>
+              <small class="text-muted">Do sức chứa bãi xe có hạn, mỗi sinh viên được phân bổ 1-2 buổi/tuần.</small>
+            </div>
+
+            <div class="form-field">
+              <label for="regLicensePlate">Biển số xe máy của bạn:</label>
+              <input type="text" id="regLicensePlate" class="input-control font-mono" placeholder="Ví dụ: 29-B1-48291"
+                required>
+              <small class="text-muted">Dùng để quét mã tự động tại cổng barrier.</small>
+            </div>
+
+            <div class="form-field">
+              <label for="regDistrict">Khu vực nơi ở / trọ hiện tại:</label>
+              <select id="regDistrict" class="select-input" onchange="onDistrictChange()">
+                <option value="Cầu Giấy (Gần trường)" data-dist="1.5">Cầu Giấy</option>
+                <option value="Nam Từ Liêm" data-dist="4.5">Nam Từ Liêm</option>
+                <option value="Bắc Từ Liêm" data-dist="5.5">Bắc Từ Liêm</option>
+                <option value="Thanh Xuân" data-dist="6.0">Thanh Xuân</option>
+                <option value="Đống Đa" data-dist="5.0">Đống Đa</option>
+                <option value="Hà Đông" data-dist="12.0" selected>Hà Đông</option>
+                <option value="Hoàng Mai" data-dist="13.0">Hoàng Mai</option>
+                <option value="Long Biên / Gia Lâm" data-dist="18.0">Long Biên / Gia Lâm</option>
+                <option value="Đông Anh / Mê Linh" data-dist="20.0">Đông Anh / Mê Linh</option>
+                <option value="Hoài Đức / Đan Phượng" data-dist="16.0">Hoài Đức / Đan Phượng</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label for="regDistance">Khoảng cách từ nhà/trọ tới trường (km):</label>
+              <div class="input-with-unit">
+                <input type="number" id="regDistance" value="12.0" min="0.5" max="35.0" step="0.5" required>
+                <span>km</span>
+              </div>
+              <small class="text-muted">Sinh viên ở xa được hệ thống ưu tiên xếp lịch cao hơn.</small>
+            </div>
+          </div>
+
+          <!-- Chọn ca ưu tiên -->
+          <div class="form-field mt-3">
+            <label>Chọn các ca học bạn muốn ưu tiên đi xe máy nhất (trong các buổi có giờ học):</label>
+            <div class="checkbox-sessions-grid" id="regSessionCheckboxes">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+          <div class="reg-form-footer mt-4">
+            <button type="submit" class="btn btn-primary btn-lg">
+              💾 Cập Nhật & Đăng Ký Xếp Chỗ Ngay
+            </button>
+            <span id="regStatusMsg" class="reg-status-msg" style="display: none;"></span>
+          </div>
+        </form>
+
+        <!-- Minh bạch lý do duyệt -->
+        <div class="transparency-box mt-4">
+          <div class="transparency-header">
+            <span class="info-icon">ℹ️</span>
+            <strong>Minh bạch kết quả xét duyệt:</strong>
+          </div>
+          <p class="transparency-text" id="studentReasonText">
+            Sinh viên được ưu tiên xếp lịch dựa trên: (1) Khoảng cách nơi ở tới trường; (2) Chính sách ưu tiên; (3) Thời
+            khóa biểu và nguyện vọng thứ tự ca học.
+          </p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- 4. MODAL ĐỔI MẬT KHẨU (CHỈ DÀNH CHO TÀI KHOẢN SINH VIÊN) -->
+  <!-- ============================================================== -->
+  <div id="changePasswordModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-header-info">
+          <span class="modal-icon">🔐</span>
+          <div>
+            <h3 id="changePwdModalTitle">Đổi Mật Khẩu Sinh Viên</h3>
+            <p id="changePwdModalSubtitle" class="modal-sub">Bảo mật tài khoản cá nhân & lịch gửi xe máy</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" id="btnCloseChangePwd"
+          onclick="closeChangePasswordModal()">&times;</button>
+      </div>
+
+      <form id="changePasswordForm" class="modal-body" onsubmit="handleChangePasswordSubmit(event)">
+        <div id="firstLoginAlert" class="alert-box alert-warning" style="display: none;">
+          ⚠️ <strong>Đăng nhập lần đầu:</strong> Bạn đang sử dụng mật khẩu mặc định (<code>12345678</code>). Vui lòng
+          đổi mật khẩu mới để kích hoạt tài khoản an toàn!
+        </div>
+
+        <div class="form-group">
+          <label for="pwdCurrent">Mật khẩu hiện tại:</label>
+          <input type="password" id="pwdCurrent" class="input-control"
+            placeholder="Nhập mật khẩu hiện tại (mặc định: 12345678)" required>
+        </div>
+
+        <div class="form-group">
+          <label for="pwdNew">Mật khẩu mới:</label>
+          <input type="password" id="pwdNew" class="input-control" placeholder="Tối thiểu 6 ký tự" required
+            minlength="6">
+          <small class="form-text-hint">Nên kết hợp chữ cái và chữ số để an toàn hơn.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="pwdConfirm">Xác nhận mật khẩu mới:</label>
+          <input type="password" id="pwdConfirm" class="input-control" placeholder="Nhập lại mật khẩu mới" required
+            minlength="6">
+        </div>
+
+        <div id="changePwdAlert" class="login-error-alert" style="display: none;"></div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="btnSkipChangePwd" style="display: none;"
+            onclick="closeChangePasswordModal()">Để sau</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitChangePwd">
+            💾 Cập Nhật Mật Khẩu Mới
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modern Clean Footer -->
+  <footer class="app-footer">
+    <div class="footer-inner">
+      <span><strong>SmartPark</strong> • Hệ thống Xếp lịch & Quản lý Bãi xe Máy Sinh viên (SSME)</span>
+      <span>Đại học Quốc gia Hà Nội • Cơ sở dữ liệu SQLite3 (node:sqlite) • Lưu trữ an toàn</span>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+</body>
+
+</html>
