@@ -1,5 +1,9 @@
 /**
  * Module: queueing.js
+<<<<<<< HEAD
+=======
+ * Hiện thực hóa Chương 5: Hàng đợi trong dịch vụ (PGS. TS. Hà Quang Thụy)
+>>>>>>> 045d18bc6ec7043410636de6317e553f086a972b
  * Phân tích hàng đợi cổng vào bãi xe (M/M/s) & Mô hình mất mát sức chứa (Erlang-B M/M/C/C)
  */
 

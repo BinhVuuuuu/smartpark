@@ -1,6 +1,10 @@
 /**
  * Module: sdlogic.js
  * Hiện thực hóa Chương 3: Logic hướng dịch vụ (S-D Logic) & Bản thiết kế dịch vụ (Service Blueprint)
+<<<<<<< HEAD
+=======
+ * (Stephen L. Vargo & Robert F. Lusch, Robert F. Lusch 2014, PGS. TS. Hà Quang Thụy)
+>>>>>>> 045d18bc6ec7043410636de6317e553f086a972b
  */
 
 const SD_LOGIC_PREMISES = [

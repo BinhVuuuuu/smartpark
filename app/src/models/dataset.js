@@ -1,6 +1,10 @@
 /**
  * Module: dataset.js
  * Sinh dữ liệu mẫu thực tế về sinh viên, thời khóa biểu và nhu cầu gửi xe máy
+<<<<<<< HEAD
+=======
+ * Phục vụ bài toán Khoa học dịch vụ (SSME) - PGS. TS. Hà Quang Thụy
+>>>>>>> 045d18bc6ec7043410636de6317e553f086a972b
  */
 
 const MAJORS = [

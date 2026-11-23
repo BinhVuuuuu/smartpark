@@ -1,5 +1,9 @@
 /**
  * Module: location.js
+<<<<<<< HEAD
+=======
+ * Hiện thực hóa Chương 6: Định vị và phân bổ trong dịch vụ (PGS. TS. Hà Quang Thụy)
+>>>>>>> 045d18bc6ec7043410636de6317e553f086a972b
  * Phân tích địa lý, bán kính di chuyển và Mô hình trọng tâm Weber
  */
 

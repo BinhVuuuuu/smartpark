@@ -1,5 +1,9 @@
 /**
  * Module: optimizer.js
+<<<<<<< HEAD
+=======
+ * Hiện thực hóa Chương 4: Tối ưu hóa trong dịch vụ (PGS. TS. Hà Quang Thụy)
+>>>>>>> 045d18bc6ec7043410636de6317e553f086a972b
  * Bài toán: Xếp lịch đi xe máy cho sinh viên với sức chứa cố định C_t
  */
 

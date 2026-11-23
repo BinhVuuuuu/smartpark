@@ -717,6 +717,10 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`=======================================================`);
   console.log(` SMART PARKING SSME - KHOA HỌC DỊCH VỤ WEB APP`);
+<<<<<<< HEAD
+=======
+  console.log(` Trường ĐH Công nghệ - ĐHQGHN (PGS. TS. Hà Quang Thụy)`);
+>>>>>>> 045d18bc6ec7043410636de6317e553f086a972b
   console.log(` Server đang chạy tại: http://localhost:${PORT}`);
   console.log(`=======================================================`);
 });
